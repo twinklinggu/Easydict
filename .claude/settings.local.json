@@ -44,10 +44,6 @@
       "Bash(GIT_PAGER=cat git diff:*)"
     ],
     "deny": [
-      "Bash(git add:*)",
-      "Bash(git push:*)",
-      "Bash(git commit --all:*)",
-      "Bash(xcodebuild:*)"
     ],
     "ask": []
   }
