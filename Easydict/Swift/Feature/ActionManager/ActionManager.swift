@@ -22,9 +22,6 @@ class ActionManager: NSObject {
 
     @objc static let shared = ActionManager()
 
-    var translateService = BuiltInAIService()
-    var polishService = PolishingService()
-
     // MARK: - Text Field Detection and Access
 
     // MARK: - Public Methods
@@ -70,24 +67,30 @@ class ActionManager: NSObject {
         }
 
         // Prepare translation request
-        guard let request = await prepareTranslationRequest(queryText: queryText, type: type) else {
+        let engine = resolveEngine()
+        guard let request = await prepareTranslationRequest(
+            queryText: queryText,
+            type: type,
+            engine: engine
+        ) else {
             return
         }
 
         // Execute the streaming service
-        await performStreamingService(request: request, elementInfo: elementInfo)
+        await performStreamingService(engine: engine, request: request, elementInfo: elementInfo)
     }
 
     // MARK: - Helper Methods
 
     /// Prepare translation request from text field information
     /// - Parameters:
-    ///   - elementInfo: Information about the current focused element
+    ///   - queryText: The text to process.
     ///   - type: The type of processing (translate or polish)
     /// - Returns: A configured TranslationRequest or nil if preparation fails
     private func prepareTranslationRequest(
         queryText: String,
-        type: ProcessingType
+        type: ProcessingType,
+        engine: QueryService
     ) async
         -> TranslationRequest? {
         // Detect language and target
@@ -99,41 +102,54 @@ class ActionManager: NSObject {
             return nil
         }
 
-        // Create base request
+        // The engine (not the task) runs the request: translate uses the
+        // engine's default prompt path; polish injects the polishing prompt
+        // so any streaming engine runs it. See
+        // docs/adr/0001-decouple-polish-task-from-service.md.
         var request = TranslationRequest(
             text: queryText,
             sourceLanguage: detectedLanguage.code,
             targetLanguage: targetLanguage.code,
-            serviceType: "",
+            serviceType: engine.serviceTypeWithUniqueIdentifier(),
             queryType: .translation
         )
 
-        // Set service type based on processing type
-        switch type {
-        case .translate:
-            request.serviceType = translateService.serviceType().rawValue
-        case .polish:
-            request.serviceType = polishService.serviceType().rawValue
+        if type == .polish {
+            // Polish refines text in its source language; the target
+            // language is ignored.
+            request.chatMessages = PolishingPromptBuilder.messages(
+                text: queryText,
+                sourceLanguage: detectedLanguage
+            )
         }
 
         return request
+    }
+
+    /// Resolves the streaming engine for the replace actions from the
+    /// main window's configured services, falling back to `BuiltInAI`
+    /// when the persisted selection is stale.
+    private func resolveEngine() -> QueryService {
+        let eligible = ReplaceActionEngineResolver.eligibleEngines(
+            services: LocalStorage.shared().allServices(.main)
+        )
+        return ReplaceActionEngineResolver.resolve(
+            selection: Defaults[.replaceActionEngineServiceTypeId],
+            eligible: eligible
+        )
     }
 
     // MARK: - Streaming Service Methods
 
     /// Perform translation or polishing using a streaming service
     private func performStreamingService(
+        engine: QueryService,
         request: TranslationRequest,
         elementInfo: FocusedElementInfo
     ) async {
-        guard let service = QueryServiceFactory.shared.service(withTypeId: request.serviceType)
-        else {
-            logError("Service type \(request.serviceType) not found")
-            return
-        }
-
-        guard let streamService = service as? StreamService else {
-            logError("\(service.name()) does not support streaming")
+        guard let streamService = engine as? StreamService else {
+            logError("\(engine.name()) does not support streaming")
+            await surfaceFailure(serviceName: engine.name(), error: nil)
             return
         }
 
@@ -149,8 +165,21 @@ class ActionManager: NSObject {
                 logInfo("Streaming task cancelled")
             } else {
                 logError("stream failed: \(error.localizedDescription)")
+                await surfaceFailure(serviceName: streamService.name(), error: error)
             }
         }
+    }
+
+    /// Surfaces a replace-action failure as a visible toast (missing API
+    /// key, missing CLI binary, streaming error, etc.). Cancellation is
+    /// intentionally not surfaced.
+    @MainActor
+    private func surfaceFailure(serviceName: String, error: Error?) async {
+        let detail = error?.localizedDescription ?? String(localized: "replace_action.error.no_engine")
+        let message = String(
+            localized: "replace_action.error.failed \(serviceName) \(detail)"
+        )
+        EZToast.showText(message)
     }
 
     /// Replace text with streaming data

@@ -112,7 +112,8 @@ public final class GeminiService: StreamService {
                         sourceLanguage: from,
                         targetLanguage: to,
                         queryType: queryType,
-                        enableSystemPrompt: enableSystemPromptInChats
+                        enableSystemPrompt: enableSystemPromptInChats,
+                        chatMessages: taskChatMessages
                     )
 
                     let chatHistory = serviceChatMessageModels(chatQueryParam)

@@ -28,6 +28,10 @@
 		030732D32F24862A0001382A /* OCRTestSample+English.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030732C32F24862A0001382A /* OCRTestSample+English.swift */; };
 		030732D42F24862A0001382A /* OCRTextProcessingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030732CA2F24862A0001382A /* OCRTextProcessingTests.swift */; };
 		030732D52F24862A0001382A /* OCRTestSample+Chinese.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030732C12F24862A0001382A /* OCRTestSample+Chinese.swift */; };
+		0307A0232F7AAAAA0000002 /* PolishingPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0307A0232F7AAAAA0000001 /* PolishingPromptBuilder.swift */; };
+		0307A0232F7AAAAA0000004 /* ReplaceActionEngineResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0307A0232F7AAAAA0000003 /* ReplaceActionEngineResolver.swift */; };
+		0307A0232F7B0000000000A2 /* PolishingPromptBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0307A0232F7B0000000000A1 /* PolishingPromptBuilderTests.swift */; };
+		0307A0232F7B0000000000A4 /* ReplaceActionEngineResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0307A0232F7B0000000000A3 /* ReplaceActionEngineResolverTests.swift */; };
 		0309E1ED292B439A00AFB76A /* EZTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0309E1EC292B439A00AFB76A /* EZTextView.m */; };
 		0309E1F0292B4A5E00AFB76A /* NSView+EZGetViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0309E1EF292B4A5E00AFB76A /* NSView+EZGetViewController.m */; };
 		030D61252CD9B906000DF298 /* AcknowListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030D61242CD9B905000DF298 /* AcknowListView.swift */; };
@@ -654,6 +658,10 @@
 		030732C82F24862A0001382A /* OCRPunctuationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRPunctuationTests.swift; sourceTree = "<group>"; };
 		030732C92F24862A0001382A /* OCRTextProcessingChineseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRTextProcessingChineseTests.swift; sourceTree = "<group>"; };
 		030732CA2F24862A0001382A /* OCRTextProcessingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRTextProcessingTests.swift; sourceTree = "<group>"; };
+		0307A0232F7AAAAA0000001 /* PolishingPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolishingPromptBuilder.swift; sourceTree = "<group>"; };
+		0307A0232F7AAAAA0000003 /* ReplaceActionEngineResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplaceActionEngineResolver.swift; sourceTree = "<group>"; };
+		0307A0232F7B0000000000A1 /* PolishingPromptBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolishingPromptBuilderTests.swift; sourceTree = "<group>"; };
+		0307A0232F7B0000000000A3 /* ReplaceActionEngineResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplaceActionEngineResolverTests.swift; sourceTree = "<group>"; };
 		0309E1EB292B439A00AFB76A /* EZTextView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EZTextView.h; sourceTree = "<group>"; };
 		0309E1EC292B439A00AFB76A /* EZTextView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EZTextView.m; sourceTree = "<group>"; };
 		0309E1EE292B4A5E00AFB76A /* NSView+EZGetViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSView+EZGetViewController.h"; sourceTree = "<group>"; };
@@ -2292,6 +2300,7 @@
 			isa = PBXGroup;
 			children = (
 				03A00D872E616D56001A4D82 /* ActionManager.swift */,
+				0307A0232F7AAAAA0000003 /* ReplaceActionEngineResolver.swift */,
 			);
 			path = ActionManager;
 			sourceTree = "<group>";
@@ -2842,6 +2851,7 @@
 			children = (
 				FA76B47A0150434485FCBBAD /* MDictReaderTests.swift */,
 				03C408F82EF5CB830025A1F0 /* ServiceTests.swift */,
+				0307A0232F7B0000000000A1 /* PolishingPromptBuilderTests.swift */,
 				03A884792F14000100D5C0DE /* BingServiceTests.swift */,
 				0652043BE29F4DEC887CAA78 /* AppleServiceTests.swift */,
 				034080A12F6B1C75005C8508 /* AppleSpeechServiceTests.swift */,
@@ -3535,6 +3545,7 @@
 			children = (
 				02DEDC0420260430000000C1 /* Markdown */,
 				030732CB2F24862A0001382A /* OCR */,
+				0307A0232F7B0000000000A3 /* ReplaceActionEngineResolverTests.swift */,
 			);
 			path = Feature;
 			sourceTree = "<group>";
@@ -3590,6 +3601,7 @@
 			children = (
 				C4A512BD2C414A2400F00F33 /* AIToolService.swift */,
 				C4CCDAA42C407A4100AC88BA /* PolishingService.swift */,
+				0307A0232F7AAAAA0000001 /* PolishingPromptBuilder.swift */,
 				C4CCDAA22C407A0D00AC88BA /* SummaryService.swift */,
 			);
 			path = AITool;
@@ -4199,6 +4211,8 @@
 				59F60C73B7C74FC8820E138E /* SystemUtilitiesTests.swift in Sources */,
 				A1C1A10130ABCDEF00112233 /* ClaudeSSEParserTests.swift in Sources */,
 				03C408F92EF5CB830025A1F0 /* ServiceTests.swift in Sources */,
+				0307A0232F7B0000000000A2 /* PolishingPromptBuilderTests.swift in Sources */,
+				0307A0232F7B0000000000A4 /* ReplaceActionEngineResolverTests.swift in Sources */,
 				0312584F2E1802650072320C /* AppleLanguageDetectorTests.swift in Sources */,
 				03A8846E2F12000100D5C0DE /* TaskTimeoutTests.swift in Sources */,
 				A1D1807E2F8D100100B1C0D1 /* ThrottleGateTests.swift in Sources */,
@@ -4566,6 +4580,8 @@
 				031760F42E07FB2800CE8FD7 /* AppleLanguageDetector.swift in Sources */,
 				EAE3D3502B62E9DE001EE3E3 /* GlobalContext.swift in Sources */,
 				03715A292E6D25170067259C /* ActionManager.swift in Sources */,
+				0307A0232F7AAAAA0000002 /* PolishingPromptBuilder.swift in Sources */,
+				0307A0232F7AAAAA0000004 /* ReplaceActionEngineResolver.swift in Sources */,
 				EA9943F02B5354C400EE7B97 /* ShowWindowPositionExtensions.swift in Sources */,
 				96B2F1C52C07782400AD3126 /* RepoInfoHelper.swift in Sources */,
 				CB8C43002C441B74004EC86F /* BaiduApiResponse.swift in Sources */,
@@ -4872,6 +4888,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Easydict/App/Easydict-debug.entitlements";
 				CODE_SIGN_IDENTITY = $CODE_SIGN_IDENTITY;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = $CODE_SIGN_STYLE;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -4879,6 +4896,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = L2WS96227Q;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_DEBUG_DYLIB = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -4919,7 +4937,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Easydict/App/Easydict.entitlements;
 				CODE_SIGN_IDENTITY = $CODE_SIGN_IDENTITY;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -4927,7 +4945,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = 45Z6V4YD5U;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = L2WS96227Q;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_DEBUG_DYLIB = YES;
 				ENABLE_HARDENED_RUNTIME = YES;

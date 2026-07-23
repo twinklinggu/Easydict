@@ -86,7 +86,8 @@ public final class ClaudeService: StreamService {
                         sourceLanguage: from,
                         targetLanguage: to,
                         queryType: queryType,
-                        enableSystemPrompt: true
+                        enableSystemPrompt: true,
+                        chatMessages: taskChatMessages
                     )
 
                     let messages = chatMessageDicts(chatQueryParam)

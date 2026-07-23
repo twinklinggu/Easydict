@@ -20,7 +20,8 @@ struct TranslationRequest: Content {
         targetLanguage: String,
         serviceType: String,
         appleDictionaryNames: [String]? = nil,
-        queryType: EZQueryTextType = []
+        queryType: EZQueryTextType = [],
+        chatMessages: [ChatMessage]? = nil
     ) {
         self.text = text
         self.sourceLanguage = sourceLanguage
@@ -28,6 +29,7 @@ struct TranslationRequest: Content {
         self.serviceType = serviceType
         self.appleDictionaryNames = appleDictionaryNames
         self.queryType = queryType
+        self.chatMessages = chatMessages
     }
 
     /// Custom initializer to handle optional queryType in JSON
@@ -41,6 +43,10 @@ struct TranslationRequest: Content {
             [String].self, forKey: .appleDictionaryNames
         )
         self.queryType = try container.decodeIfPresent(EZQueryTextType.self, forKey: .queryType) ?? []
+        // `chatMessages` is intentionally not decoded: it is an in-process
+        // channel for injected task prompts (e.g. polish) and must not be
+        // injectable over the HTTP API.
+        self.chatMessages = nil
     }
 
     // MARK: Internal
@@ -51,6 +57,11 @@ struct TranslationRequest: Content {
     var serviceType: String
     var appleDictionaryNames: [String]?
     var queryType: EZQueryTextType // [] means auto detect query type.
+
+    /// Pre-built task messages (e.g. polishing prompt) carried from
+    /// `ActionManager` into the engine. Not part of the Codable wire
+    /// format; only set in-process.
+    var chatMessages: [ChatMessage]?
 
     // MARK: - Custom encode method to handle optional fields properly
 

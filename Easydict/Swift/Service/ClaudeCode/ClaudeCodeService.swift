@@ -78,7 +78,8 @@ final class ClaudeCodeService: StreamService {
             sourceLanguage: from,
             targetLanguage: to,
             queryType: queryType,
-            enableSystemPrompt: true
+            enableSystemPrompt: true,
+            chatMessages: taskChatMessages
         )
 
         // Split the message list into a system prompt and a conversation prompt.

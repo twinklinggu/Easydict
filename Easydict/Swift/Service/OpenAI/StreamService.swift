@@ -204,6 +204,25 @@ public class StreamService: QueryService {
 
     var hideThinkTagContent: Bool = true
 
+    /// Pre-built task messages (e.g. polishing prompt) threaded from
+    /// `TranslationRequest` into the `ChatQueryParam` each engine builds.
+    /// Mirrors the `queryType` instance-state bridge. See
+    /// `docs/adr/0001-decouple-polish-task-from-service.md`.
+    var taskChatMessages: [ChatMessage]?
+
+    /// Whether this service can run a pre-built task prompt (e.g. polish)
+    /// injected via `ChatQueryParam.chatMessages`.
+    ///
+    /// General-chat engines return `true`. Task services
+    /// (`PolishingService`, `SummaryService`) override `chatMessageDicts`
+    /// and would ignore the injected prompt; `DoubaoService` bypasses it
+    /// entirely (specialized translation API). All three override to
+    /// `false` so the replace-action picker excludes them. See
+    /// `docs/adr/0001-decouple-polish-task-from-service.md`.
+    var supportsTaskMessageInjection: Bool {
+        true
+    }
+
     /// Whether requests currently use streaming transport over the network.
     ///
     /// This is intentionally narrower than `isStream()`: a service may remain stream-capable
@@ -466,6 +485,13 @@ public class StreamService: QueryService {
     /// Base on chat query, convert prompt dict to LLM service prompt model.
     /// If enableCustomPrompt is true, we will use custom prompt, otherwise use system prompt.
     func chatMessageDicts(_ chatQuery: ChatQueryParam) -> [ChatMessage] {
+        // Pre-built task messages (e.g. polish) take precedence: the
+        // task *is* the prompt, bypassing custom-prompt and built-in
+        // translation/dictionary/sentence paths.
+        if let chatMessages = chatQuery.chatMessages, !chatMessages.isEmpty {
+            return chatMessages
+        }
+
         if enableCustomPrompt {
             var chatMessages: [ChatMessage] = []
             let systemPrompt = replaceCustomPromptWithVariable(systemPrompt)

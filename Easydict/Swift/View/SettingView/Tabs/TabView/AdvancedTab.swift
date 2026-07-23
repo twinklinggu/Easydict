@@ -47,6 +47,22 @@ struct AdvancedTab: View {
                             .tag(option)
                     }
                 }
+                Picker(
+                    selection: $replaceActionEngineServiceTypeId,
+                    label: AdvancedTabItemView(
+                        color: .green,
+                        icon: .arrowLeftArrowRightSquare,
+                        labelText: "setting.advance.replace_action_engine"
+                    )
+                ) {
+                    ForEach(
+                        replaceActionEngines.map { ($0.serviceTypeWithUniqueIdentifier(), $0) },
+                        id: \.0
+                    ) { _, service in
+                        Text(verbatim: service.name())
+                            .tag(service.serviceTypeWithUniqueIdentifier())
+                    }
+                }
                 Toggle(isOn: $preferYoudaoTTSForEnglishWord) {
                     AdvancedTabItemView(
                         color: .indigo,
@@ -439,6 +455,8 @@ struct AdvancedTab: View {
     @Default(.enableBetaFeature) private var enableBetaFeature
 
     @Default(.defaultTTSServiceType) private var defaultTTSServiceType
+    @Default(.replaceActionEngineServiceTypeId) private var replaceActionEngineServiceTypeId
+
     @Default(.preferYoudaoTTSForEnglishWord) private var preferYoudaoTTSForEnglishWord
     @Default(.disableTipsView) private var disableTipsView
     @Default(.enableYoudaoOCR) private var enableYoudaoOCR
@@ -476,6 +494,15 @@ struct AdvancedTab: View {
     @Default(.httpPort) private var httpPort
 
     @Default(.maxWindowHeightPercentage) private var maxWindowHeightPercentageValue
+
+    /// Eligible streaming engines for the translate/polish-and-replace
+    /// actions, from the main window's configured services. BuiltInAI is
+    /// always present in practice, so the picker is never empty.
+    private var replaceActionEngines: [QueryService] {
+        ReplaceActionEngineResolver.eligibleEngines(
+            services: LocalStorage.shared().allServices(.main)
+        )
+    }
 
     /// Returns Color.green if `enableHTTPServer` is true, returns Color.red otherwise.
     private func getHttpIconColor() -> Color {

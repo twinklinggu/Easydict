@@ -34,6 +34,7 @@ extension StreamService {
     func streamTranslate(request: TranslationRequest) async throws
         -> AsyncThrowingStream<ChatStreamResult, Error> {
         queryType = request.queryType
+        taskChatMessages = request.chatMessages
 
         let text = request.text
         var from = Language.auto

@@ -103,7 +103,8 @@ class DeepSeekService: OpenAIService {
                         sourceLanguage: from,
                         targetLanguage: to,
                         queryType: queryType,
-                        enableSystemPrompt: true
+                        enableSystemPrompt: true,
+                        chatMessages: taskChatMessages
                     )
                     let request = try makeChatRequest(
                         url: url,

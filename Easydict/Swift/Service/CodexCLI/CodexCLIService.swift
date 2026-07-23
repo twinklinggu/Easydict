@@ -71,7 +71,8 @@ final class CodexCLIService: StreamService {
             sourceLanguage: from,
             targetLanguage: to,
             queryType: queryType,
-            enableSystemPrompt: true
+            enableSystemPrompt: true,
+            chatMessages: taskChatMessages
         )
 
         // Codex has no separate system-prompt flag, so all messages are merged

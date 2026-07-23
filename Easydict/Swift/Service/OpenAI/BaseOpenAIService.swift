@@ -80,7 +80,8 @@ public class BaseOpenAIService: StreamService {
             sourceLanguage: from,
             targetLanguage: to,
             queryType: queryType,
-            enableSystemPrompt: true
+            enableSystemPrompt: true,
+            chatMessages: taskChatMessages
         )
 
         let chatHistory = serviceChatMessageModels(chatQueryParam)

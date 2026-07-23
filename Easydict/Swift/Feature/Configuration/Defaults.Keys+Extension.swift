@@ -406,6 +406,14 @@ extension Defaults.Keys {
         "EZPolishAndReplaceShortcutKey_keyHolder"
     )
 
+    /// Selected engine (`type#uuid`) for the translate/polish-and-replace
+    /// actions. Defaults to `BuiltInAI`; a stale selection falls back to
+    /// `BuiltInAI` at action time.
+    static let replaceActionEngineServiceTypeId = Key<String>(
+        "EZReplaceActionEngineServiceTypeId",
+        default: ServiceType.builtInAI.rawValue
+    )
+
     static let screenshotOCRShortcut = Key<KeyCombo?>("EZScreenshotOCRShortcutKey2_keyHolder")
     static let pasteboardOCRShortcut = Key<KeyCombo?>("EZPasteboardOCRShortcutKey_keyHolder")
     static let showOCRWindowShortcut = Key<KeyCombo?>("EZShowOCRWindowShortcutKey_keyHolder")

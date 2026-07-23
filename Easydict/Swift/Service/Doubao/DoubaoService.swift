@@ -83,6 +83,13 @@ public final class DoubaoService: StreamService {
         Self.defaultModelIdentifier
     }
 
+    /// Doubao is a specialized translation API that bypasses
+    /// `chatMessageDicts`, so it cannot run an injected task prompt
+    /// (e.g. polish). Excluded from the replace-action engine picker.
+    override var supportsTaskMessageInjection: Bool {
+        false
+    }
+
     override func contentStreamTranslate(
         _ text: String,
         from: Language,

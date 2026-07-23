@@ -24,6 +24,8 @@ class SummaryService: AIToolService {
 
     // MARK: Internal
 
+    override var supportsTaskMessageInjection: Bool { false }
+
     override func chatMessageDicts(_ chatQuery: ChatQueryParam) -> [ChatMessage] {
         let (text, sourceLanguage, _, _, _) = chatQuery.unpack()
         let answerLanguage = MyConfiguration.shared.firstLanguage

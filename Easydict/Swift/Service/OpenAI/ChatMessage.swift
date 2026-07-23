@@ -51,11 +51,39 @@ enum AIToolType {
 // MARK: - ChatQueryParam
 
 struct ChatQueryParam {
+    // MARK: Lifecycle
+
+    init(
+        text: String,
+        sourceLanguage: Language,
+        targetLanguage: Language,
+        queryType: EZQueryTextType,
+        enableSystemPrompt: Bool,
+        chatMessages: [ChatMessage]? = nil
+    ) {
+        self.text = text
+        self.sourceLanguage = sourceLanguage
+        self.targetLanguage = targetLanguage
+        self.queryType = queryType
+        self.enableSystemPrompt = enableSystemPrompt
+        self.chatMessages = chatMessages
+    }
+
+    // MARK: Internal
+
     let text: String
     let sourceLanguage: Language
     let targetLanguage: Language
     let queryType: EZQueryTextType
     let enableSystemPrompt: Bool
+
+    /// Pre-built task messages to run instead of the engine's default
+    /// prompt path.
+    ///
+    /// When non-empty, `chatMessageDicts` returns these as-is so any
+    /// streaming engine runs the task (e.g. polish) on its own backend.
+    /// See `docs/adr/0001-decouple-polish-task-from-service.md`.
+    let chatMessages: [ChatMessage]?
 
     func unpack() -> (String, Language, Language, EZQueryTextType, Bool) {
         (text, sourceLanguage, targetLanguage, queryType, enableSystemPrompt)
