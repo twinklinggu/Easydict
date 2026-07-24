@@ -168,6 +168,48 @@
           }
         }
       }
+    },
+    "NSLocalNetworkUsageDescription" : {
+      "comment" : "Privacy - Local Network Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Easydict requires permission to access devices on your local network."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easydict がローカルネットワーク上のデバイスにアクセスするには権限が必要です。"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easydict vyžaduje povolenie na prístup k zariadeniam v lokálnej sieti."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easydict 需要权限来访问本地网络上的设备。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easydict 需要權限來存取本地網路上的裝置。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easydict requiere permiso para acceder a dispositivos en tu red local."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
