@@ -40,8 +40,6 @@ extension StreamService {
             enableSystemPrompt
                 ? [.init(role: .system, content: StreamService.translationSystemPrompt)] : []
 
-
-
         let userMessages: [ChatMessage] = [.init(role: .user, content: prompt)]
         messages.append(contentsOf: userMessages)
 

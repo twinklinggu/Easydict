@@ -54,6 +54,12 @@
 	</dict>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2023-2025 tisfeng. All rights reserved.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Easydict requires permission to access devices on your local network.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_easydict._tcp</string>
+	</array>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSSupportsAutomaticTermination</key>

@@ -31,6 +31,12 @@ enum EasydictCmpatibilityEntry {
             EZPatchWindowServerCornerMask()
         }
 
+        // Surface the macOS Local Network permission prompt so user-configured local
+        // endpoints (e.g. a local Ollama/OpenAI-compatible server) can be reached. A
+        // direct URLSession to a private IP does not trigger the prompt on macOS, but a
+        // short Bonjour browse does. See LocalNetworkPermissionRequester.
+        LocalNetworkPermissionRequester.requestIfNeeded()
+
         // app launch
         EasydictApp.main()
     }
