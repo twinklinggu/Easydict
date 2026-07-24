@@ -14,14 +14,64 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------------
+      # 1. SPM Dependencies Cache
+      # ------------------------------------------------------------------------
+      - name: Cache SPM Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            Build/SourcePackages
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved', '**/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      # ------------------------------------------------------------------------
+      # 2. CocoaPods Cache (Skip if Easydict doesn't use CocoaPods)
+      # ------------------------------------------------------------------------
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            Pods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # ------------------------------------------------------------------------
+      # 3. Xcode DerivedData Cache (Build Artifacts)
+      # ------------------------------------------------------------------------
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: Build
+          key: ${{ runner.os }}-deriveddata-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-deriveddata-
+
+      # ------------------------------------------------------------------------
+      # Build & Package
+      # ------------------------------------------------------------------------
       - name: Build
         run: |
-          xcodebuild build -workspace Easydict.xcworkspace -scheme Easydict -configuration Release -derivedDataPath Build CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=""
+          xcodebuild build \
+            -workspace Easydict.xcworkspace \
+            -scheme Easydict \
+            -configuration Release \
+            -derivedDataPath Build \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=""
+
       - name: Package app
         run: |
           app_path=$(find Build/Build/Products -name "*.app" -type d | head -n 1)
           echo "Found app: $app_path"
           ditto -c -k --keepParent "$app_path" Easydict.app.zip
+
       - name: Upload app
         uses: actions/upload-artifact@v4
         with:
