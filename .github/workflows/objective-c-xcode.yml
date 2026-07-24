@@ -66,9 +66,14 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM=""
 
+      - name: Compress App
+        run: |
+          ditto -ck --sequesterRsrc Build/Build/Products/Release/Easydict.app Easydict.zip
+
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
           name: Easydict-app
-          path: Build/Build/Products/Release/Easydict.app
+          path: Easydict.zip
+          compression-level: 0
           if-no-files-found: error
