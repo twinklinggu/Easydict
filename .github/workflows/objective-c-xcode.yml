@@ -66,14 +66,13 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM=""
 
-      - name: Compress App
+      - name: Create DMG
         run: |
-          ditto -ck --sequesterRsrc Build/Build/Products/Release/Easydict.app Easydict.zip
+          hdiutil create -volname "Easydict" -srcfolder Build/Build/Products/Release/Easydict.app -ov -format UDZO Easydict.dmg
 
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Easydict-app
-          path: Easydict.zip
-          compression-level: 0
+          name: Easydict-dmg
+          path: Easydict.dmg
           if-no-files-found: error
