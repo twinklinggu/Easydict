@@ -68,7 +68,7 @@ jobs:
 
       - name: Package app
         run: |
-          app_path=$(find Build/Build/Products -name "*.app" -type d | head -n 1)
+          app_path=$(find Build/Products -name "*.app" -type d | head -n 1)
           echo "Found app: $app_path"
           ditto -c -k --keepParent "$app_path" Easydict.app.zip
 
