@@ -66,31 +66,9 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM=""
 
-      - name: Package app
-        run: |
-          # 1. 查找 Easydict.app 的完整绝对路径
-          APP_PATH=$(find "$(pwd)/Build" -name "Easydict.app" -type d | head -n 1)
-          
-          if [ -z "$APP_PATH" ]; then
-            echo "❌ Error: Could not find Easydict.app!"
-            exit 1
-          fi
-
-          echo "Found app at: $APP_PATH"
-
-          # 2. 获取 app 所在目录和 app 名称
-          APP_DIR=$(dirname "$APP_PATH")
-          APP_NAME=$(basename "$APP_PATH")
-
-          # 3. 切换到 release 产物目录再进行 ditto 压缩，避免包含多级父目录
-          cd "$APP_DIR"
-          ditto -c -k --keepParent "$APP_NAME" "$GITHUB_WORKSPACE/Easydict.app.zip"
-
-          echo "✅ Successfully packaged Easydict.app.zip"
-          ls -lh "$GITHUB_WORKSPACE/Easydict.app.zip"
-      - name: Upload app
+      - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
           name: Easydict-app
-          path: Easydict.app.zip
+          path: Build/Build/Products/Release/Easydict.app
           if-no-files-found: error
