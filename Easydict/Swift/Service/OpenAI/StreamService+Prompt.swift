@@ -25,7 +25,7 @@ extension StreamService {
         text: String, from sourceLanguage: Language, to targetLanguage: Language
     )
         -> String {
-        "Translate the following \(sourceLanguage.queryLanguageName) text into \(targetLanguage.queryLanguageName) text: \"\(text)\""
+        "Translate the following \(sourceLanguage.queryLanguageName) text into \(targetLanguage.queryLanguageName) text: \n\n\(text)"
     }
 
     func translationMessages(_ chatQuery: ChatQueryParam) -> [ChatMessage] {
