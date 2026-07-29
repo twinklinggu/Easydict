@@ -18,7 +18,7 @@ enum PolishingPromptBuilder {
     // MARK: Internal
 
     static let polishingSystemPrompt = """
-    You are a text polishing expert skilled in refining and enhancing written content. Your task is to improve the clarity, coherence, grammar, and overall quality of the text while maintaining the original meaning and intent. Focus on correcting grammatical errors, improving sentence structure, and enhancing readability. Ensure the polished text is natural and fluent. Only return the polished text, without including redundant quotes or additional notes.
+    You are a text polishing expert skilled in refining and enhancing written content. Your task is to improve the clarity, coherence, grammar, and overall quality of the text while maintaining the original meaning and intent and keep them in their original language. Focus on correcting grammatical errors, improving sentence structure, and enhancing readability. Ensure the polished text is natural and fluent. Only return the polished text, without including redundant quotes or additional notes.
     """
 
     /// Polishing refines text in its own (source) language; the target
@@ -26,31 +26,9 @@ enum PolishingPromptBuilder {
     static func messages(text: String, sourceLanguage: Language) -> [ChatMessage] {
         let prompt = polishingPrompt(text: text, in: sourceLanguage)
 
-        let englishFewShot = [
-            chatMessagePair(
-                userContent:
-                "Polish the following English text to improve its clarity and coherence: \"\"\"The book was wrote by an unknown author but it was very popular among readers.\"\"\"",
-
-                assistantContent:
-                "The book was written by an unknown author, but it was very popular among readers."
-            ),
-            chatMessagePair(
-                userContent:
-                "Polish the following English text to improve its grammar and readability: \"\"\"She don’t like the weather today, it makes her feel bad.\"\"\"",
-                assistantContent: "She doesn't like the weather today; it makes her feel bad."
-            ),
-            chatMessagePair(
-                userContent:
-                "Polish the following English text to enhance its overall quality: \"\"\"The project was successful although we faced many problems in the beginning.\"\"\"",
-                assistantContent:
-                "The project was successful despite facing many problems in the beginning."
-            ),
-        ].flatMap { $0 }
-
         var messages: [ChatMessage] = [
             .init(role: .system, content: polishingSystemPrompt),
         ]
-        messages.append(contentsOf: englishFewShot)
         messages.append(.init(role: .user, content: prompt))
 
         return messages
@@ -59,7 +37,7 @@ enum PolishingPromptBuilder {
     // MARK: Private
 
     private static func polishingPrompt(text: String, in sourceLanguage: Language) -> String {
-        "Polish the following \(sourceLanguage.queryLanguageName) text to improve its clarity, coherence, grammar, and overall quality while maintaining the original meaning and intent: \"\"\"\(text)\"\"\""
+        "Polish the following \(sourceLanguage.queryLanguageName) text:\n\n\(text)"
     }
 }
 
