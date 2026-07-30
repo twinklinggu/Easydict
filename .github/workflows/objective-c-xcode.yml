@@ -1,4 +1,4 @@
-name: Xcode - Build and Analyze
+name: Xcode - Build and Package
 
 on:
   push:
@@ -8,16 +8,14 @@ on:
 
 jobs:
   build:
-    name: Build and analyse default scheme using xcodebuild command
+    name: Build & Package App
     runs-on: macos-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ------------------------------------------------------------------------
-      # 1. SPM Dependencies Cache
-      # ------------------------------------------------------------------------
+      # 1. SPM 缓存
       - name: Cache SPM Dependencies
         uses: actions/cache@v4
         with:
@@ -28,9 +26,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-
 
-      # ------------------------------------------------------------------------
-      # 2. CocoaPods Cache (Skip if Easydict doesn't use CocoaPods)
-      # ------------------------------------------------------------------------
+      # 2. CocoaPods 缓存
       - name: Cache CocoaPods
         uses: actions/cache@v4
         with:
@@ -41,20 +37,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
-      # ------------------------------------------------------------------------
-      # 3. Xcode DerivedData Cache (Build Artifacts)
-      # ------------------------------------------------------------------------
-      - name: Cache DerivedData
-        uses: actions/cache@v4
-        with:
-          path: Build
-          key: ${{ runner.os }}-deriveddata-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-deriveddata-
-
-      # ------------------------------------------------------------------------
-      # Build & Package
-      # ------------------------------------------------------------------------
+      # 3. 编译 App (禁用原生签名)
       - name: Build
         run: |
           xcodebuild build \
@@ -62,10 +45,12 @@ jobs:
             -scheme Easydict \
             -configuration Release \
             -derivedDataPath Build \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM=""
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            -parallelizeTargets \
+            -quiet
 
+      # 4. 导入证书
       - name: Import Certificate
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
@@ -73,28 +58,61 @@ jobs:
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           KEYCHAIN_PASSWORD=$(openssl rand -base64 14)
-
-          # 创建临时钥匙串
+          
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # 导入 p12 证书
-          echo $MACOS_CERTIFICATE | base64 --decode > $RUNNER_TEMP/certificate.p12
+          
+          # 扩展搜索路径
+          security list-keychains -d user -s $KEYCHAIN_PATH $(security list-keychains -d user | tr -d '"')
+          security default-keychain -s $KEYCHAIN_PATH
+          
+          echo "$MACOS_CERTIFICATE" | base64 --decode > $RUNNER_TEMP/certificate.p12
           security import $RUNNER_TEMP/certificate.p12 -k $KEYCHAIN_PATH -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
+      # 5. 清理并按正确层级重新签名
       - name: Sign App
         run: |
-          codesign --force -s "$RUNNER_TEMP/app-signing.keychain-db" "Build/Build/Products/Release/Easydict.app"
+          APP_PATH="Build/Build/Products/Release/Easydict.app"
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          ENTITLEMENTS_PATH="Easydict/Easydict.entitlements" # 如果路径不同请修改
 
+          echo "=== 检查证书是否存在 ==="
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
+
+          echo "=== 移除旧签名 ==="
+          find "$APP_PATH" -type f \( -name "*.dylib" -o -name "*.framework" -o -name "*.appex" \) | while read -r file; do
+            codesign --remove-signature "$file" 2>/dev/null || true
+          done
+          codesign --remove-signature "$APP_PATH" 2>/dev/null || true
+
+          echo "=== 从内向外重签 ==="
+          if [ -d "$APP_PATH/Contents/Frameworks" ]; then
+            find "$APP_PATH/Contents/Frameworks" -mindepth 1 -maxdepth 1 | while read -r item; do
+              codesign --force --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$item"
+            done
+          fi
+
+          if [ -f "$ENTITLEMENTS_PATH" ]; then
+            codesign --force --options runtime --entitlements "$ENTITLEMENTS_PATH" --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
+          else
+            codesign --force --options runtime --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
+          fi
+
+      # 6. 制作包含 /Applications 快捷方式的 DMG
       - name: Create DMG
         run: |
-          hdiutil create -volname "Easydict" -srcfolder Build/Build/Products/Release/Easydict.app -ov -format UDZO Easydict.dmg
+          STAGING_DIR=$RUNNER_TEMP/dmg_staging
+          mkdir -p "$STAGING_DIR"
+          cp -R Build/Build/Products/Release/Easydict.app "$STAGING_DIR/"
+          ln -s /Applications "$STAGING_DIR/Applications"
+          hdiutil create -volname "Easydict" -srcfolder "$STAGING_DIR" -ov -format UDZO Easydict.dmg
 
+      # 7. 上传 Artifact
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Easydict
+          name: Easydict-Release
           path: Easydict.dmg
           if-no-files-found: error
