@@ -66,6 +66,28 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM=""
 
+      - name: Import Certificate
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 14)
+
+          # 创建临时钥匙串
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # 导入 p12 证书
+          echo $MACOS_CERTIFICATE | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 -k $KEYCHAIN_PATH -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+      - name: Sign App
+        run: |
+          codesign --force -s "MyLocalCert" "Build/Build/Products/Release/Easydict.app"
+
       - name: Create DMG
         run: |
           hdiutil create -volname "Easydict" -srcfolder Build/Build/Products/Release/Easydict.app -ov -format UDZO Easydict.dmg
@@ -73,6 +95,6 @@ jobs:
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Easydict-dmg
+          name: Easydict
           path: Easydict.dmg
           if-no-files-found: error
