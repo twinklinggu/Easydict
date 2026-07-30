@@ -83,29 +83,10 @@ jobs:
           set -euo pipefail
           APP_PATH="Build/Build/Products/Release/Easydict.app"
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          ENTITLEMENTS_PATH="Easydict/Easydict.entitlements" # 如果路径不同请修改
 
           echo "=== 检查证书是否存在 ==="
-          security find-identity -v -p codesigning $KEYCHAIN_PATH
 
-          echo "=== 移除旧签名 ==="
-          find "$APP_PATH" -type f \( -name "*.dylib" \) -o -type d \( -name "*.framework" -o -name "*.appex" \) | while read -r file; do
-            codesign --remove-signature "$file" 2>/dev/null || true
-          done
-          codesign --remove-signature "$APP_PATH" 2>/dev/null || true
-
-          echo "=== 从内向外重签（覆盖 Frameworks / PlugIns / 嵌套 dylib） ==="
-          # 用 sort -r 让更深路径尽量先签，减少漏签
-          find "$APP_PATH" -type d \( -name "*.framework" -o -name "*.appex" \) -o -type f -name "*.dylib" | sort -r | while read -r item; do
-            codesign --force --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$item"
-          done
-
-          echo "=== 签主 App ==="
-          if [ -f "$ENTITLEMENTS_PATH" ]; then
-            codesign --force --options runtime --entitlements "$ENTITLEMENTS_PATH" --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
-          else
-            codesign --force --options runtime --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
-          fi
+          codesign --force --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
 
       # 6. 新增：签名校验，坏包直接在这里 fail，不会被静默打包上传
       - name: Verify Signature
