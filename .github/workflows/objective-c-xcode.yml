@@ -10,6 +10,7 @@ jobs:
   build:
     name: Build & Package App
     runs-on: macos-latest
+    timeout-minutes: 30   # 新增：防止意外卡住占满 CI 配额
 
     steps:
       - name: Checkout
@@ -40,6 +41,7 @@ jobs:
       # 3. 编译 App (禁用原生签名)
       - name: Build
         run: |
+          set -euo pipefail
           xcodebuild build \
             -workspace Easydict.xcworkspace \
             -scheme Easydict \
@@ -51,29 +53,34 @@ jobs:
             -quiet
 
       # 4. 导入证书
+      # 新增条件：fork 来的 PR 拿不到 secrets，跳过签名相关步骤，避免莫名失败
       - name: Import Certificate
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
         run: |
+          set -euo pipefail
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           KEYCHAIN_PASSWORD=$(openssl rand -base64 14)
-          
+
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          
+
           # 扩展搜索路径
           security list-keychains -d user -s $KEYCHAIN_PATH $(security list-keychains -d user | tr -d '"')
           security default-keychain -s $KEYCHAIN_PATH
-          
+
           echo "$MACOS_CERTIFICATE" | base64 --decode > $RUNNER_TEMP/certificate.p12
           security import $RUNNER_TEMP/certificate.p12 -k $KEYCHAIN_PATH -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
       # 5. 清理并按正确层级重新签名
       - name: Sign App
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         run: |
+          set -euo pipefail
           APP_PATH="Build/Build/Products/Release/Easydict.app"
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           ENTITLEMENTS_PATH="Easydict/Easydict.entitlements" # 如果路径不同请修改
@@ -82,37 +89,54 @@ jobs:
           security find-identity -v -p codesigning $KEYCHAIN_PATH
 
           echo "=== 移除旧签名 ==="
-          find "$APP_PATH" -type f \( -name "*.dylib" -o -name "*.framework" -o -name "*.appex" \) | while read -r file; do
+          find "$APP_PATH" -type f \( -name "*.dylib" \) -o -type d \( -name "*.framework" -o -name "*.appex" \) | while read -r file; do
             codesign --remove-signature "$file" 2>/dev/null || true
           done
           codesign --remove-signature "$APP_PATH" 2>/dev/null || true
 
-          echo "=== 从内向外重签 ==="
-          if [ -d "$APP_PATH/Contents/Frameworks" ]; then
-            find "$APP_PATH/Contents/Frameworks" -mindepth 1 -maxdepth 1 | while read -r item; do
-              codesign --force --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$item"
-            done
-          fi
+          echo "=== 从内向外重签（覆盖 Frameworks / PlugIns / 嵌套 dylib） ==="
+          # 用 sort -r 让更深路径尽量先签，减少漏签
+          find "$APP_PATH" -type d \( -name "*.framework" -o -name "*.appex" \) -o -type f -name "*.dylib" | sort -r | while read -r item; do
+            codesign --force --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$item"
+          done
 
+          echo "=== 签主 App ==="
           if [ -f "$ENTITLEMENTS_PATH" ]; then
             codesign --force --options runtime --entitlements "$ENTITLEMENTS_PATH" --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
           else
             codesign --force --options runtime --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
           fi
 
-      # 6. 制作包含 /Applications 快捷方式的 DMG
-      - name: Create DMG
+      # 6. 新增：签名校验，坏包直接在这里 fail，不会被静默打包上传
+      - name: Verify Signature
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         run: |
+          set -euo pipefail
+          codesign --verify --deep --strict --verbose=2 "Build/Build/Products/Release/Easydict.app"
+
+      # 7. 制作包含 /Applications 快捷方式的 DMG
+      - name: Create DMG
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          set -euo pipefail
           STAGING_DIR=$RUNNER_TEMP/dmg_staging
           mkdir -p "$STAGING_DIR"
           cp -R Build/Build/Products/Release/Easydict.app "$STAGING_DIR/"
           ln -s /Applications "$STAGING_DIR/Applications"
-          hdiutil create -volname "Easydict" -srcfolder "$STAGING_DIR" -ov -format UDZO Easydict.dmg
+          hdiutil create -volname "Easydict" -srcfolder "$STAGING_DIR" -ov -format UDZO "Easydict-${GITHUB_SHA::7}.dmg"
 
-      # 7. 上传 Artifact
+      # 8. 上传 Artifact（文件名带上 commit 短 sha，避免多次内测构建互相覆盖）
       - name: Upload app artifact
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@v4
         with:
           name: Easydict-Release
-          path: Easydict.dmg
+          path: Easydict-*.dmg
           if-no-files-found: error
+
+      # 9. 新增：清理临时 keychain 和证书文件
+      - name: Cleanup Keychain
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db 2>/dev/null || true
+          rm -f $RUNNER_TEMP/certificate.p12
