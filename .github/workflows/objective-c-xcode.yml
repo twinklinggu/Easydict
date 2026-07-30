@@ -86,14 +86,14 @@ jobs:
 
           echo "=== 检查证书是否存在 ==="
 
-          codesign --force --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
+          codesign --force --deep --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
 
       # 6. 新增：签名校验，坏包直接在这里 fail，不会被静默打包上传
       - name: Verify Signature
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         run: |
           set -euo pipefail
-          codesign --force --deep --timestamp=none --keychain "$KEYCHAIN_PATH" -s "MyLocalCert" "$APP_PATH"
+          codesign --verify --deep --strict --verbose=2 "Build/Build/Products/Release/Easydict.app"
 
       # 7. 制作包含 /Applications 快捷方式的 DMG
       - name: Create DMG
