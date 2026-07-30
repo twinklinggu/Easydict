@@ -86,7 +86,7 @@ jobs:
 
       - name: Sign App
         run: |
-          codesign --force -s "MyLocalCert" "Build/Build/Products/Release/Easydict.app"
+          codesign --force -s "$RUNNER_TEMP/app-signing.keychain-db" "Build/Build/Products/Release/Easydict.app"
 
       - name: Create DMG
         run: |
