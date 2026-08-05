@@ -18,6 +18,14 @@ extension StreamService {
     static let dictSystemPrompt = """
     You are a word search assistant skilled in multiple languages and knowledgeable in etymology. You can help search for words, phrases, slang, abbreviations, and other information. Prioritize queries from authoritative dictionary databases, such as the Oxford Dictionary, Cambridge Dictionary, and Wikipedia. If a word or abbreviation has multiple meanings, look up the most commonly used ones.
     """
+    private func translationSystemPrompt(
+        from sourceLanguage: Language, to targetLanguage: Language
+    )
+        -> String {
+        "You are a professional \(sourceLanguage.queryLanguageName) to \(targetLanguage.queryLanguageName) translator. Your goal is to accurately convey the meaning and nuances of the original \(sourceLanguage.queryLanguageName) text while adhering to \(targetLanguage.queryLanguageName) grammar, vocabulary, and cultural sensitivities.
+Produce only the \(targetLanguage.queryLanguageName) translation, without any additional explanations or commentary."
+    }
+
 
     // MARK: Translation Messages
 
@@ -25,7 +33,8 @@ extension StreamService {
         text: String, from sourceLanguage: Language, to targetLanguage: Language
     )
         -> String {
-        "Translate the following \(sourceLanguage.queryLanguageName) text into \(targetLanguage.queryLanguageName) text: \n\n\(text)"
+        "You are a professional \(sourceLanguage.queryLanguageName) to \(targetLanguage.queryLanguageName) translator. Your goal is to accurately convey the meaning and nuances of the original \(sourceLanguage.queryLanguageName) text while adhering to \(targetLanguage.queryLanguageName) grammar, vocabulary, and cultural sensitivities.
+Produce only the \(targetLanguage.queryLanguageName) translation, without any additional explanations or commentary. Please translate the following \(sourceLanguage.queryLanguageName) text into \(targetLanguage.queryLanguageName):\n\n\(text)"
     }
 
     func translationMessages(_ chatQuery: ChatQueryParam) -> [ChatMessage] {
@@ -35,10 +44,10 @@ extension StreamService {
         //        let prompt = "Translate the following \(from.rawValue) text into \(to.rawValue) text: \"\"\"\(text)\"\"\""
 
         let prompt = translationPrompt(text: text, from: sourceLanguage, to: targetLanguage)
-
+        let systemPrompt = translationSystemPrompt(from: sourceLanguage, to: targetLanguage)
         var messages: [ChatMessage] =
             enableSystemPrompt
-                ? [.init(role: .system, content: StreamService.translationSystemPrompt)] : []
+                ? [.init(role: .system, content: systemPrompt)] : []
 
         let userMessages: [ChatMessage] = [.init(role: .user, content: prompt)]
         messages.append(contentsOf: userMessages)
