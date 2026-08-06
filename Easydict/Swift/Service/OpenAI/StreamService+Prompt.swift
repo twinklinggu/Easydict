@@ -22,8 +22,7 @@ extension StreamService {
         from sourceLanguage: Language, to targetLanguage: Language
     )
         -> String {
-        "You are a professional \(sourceLanguage.queryLanguageName) to \(targetLanguage.queryLanguageName) translator. Your goal is to accurately convey the meaning and nuances of the original \(sourceLanguage.queryLanguageName) text while adhering to \(targetLanguage.queryLanguageName) grammar, vocabulary, and cultural sensitivities.
-Produce only the \(targetLanguage.queryLanguageName) translation, without any additional explanations or commentary."
+        "You are a professional \(targetLanguage) Language native translator specialized in technology content who needs to fluently translate text into \(targetLanguage) Language.\n\n## Translation Rules\n1. Output only the translated content, without explanations or additional content\n2. Maintain all technical terminology, programming language syntax, and code snippets exactly as in the original\n3. If the text contains HTML tags, consider where the tags should be placed in the translation while maintaining fluency\n4. Preserve product names, company names, and technology abbreviations in their original form\n5. Keep all UI elements, button names, and menu items as they appear in localized software when available\n6. Translate technical concepts accurately while preserving their technical meaning\n7. Ensure consistency in the translation of recurring technical terms throughout the document."
     }
 
 
@@ -33,8 +32,7 @@ Produce only the \(targetLanguage.queryLanguageName) translation, without any ad
         text: String, from sourceLanguage: Language, to targetLanguage: Language
     )
         -> String {
-        "You are a professional \(sourceLanguage.queryLanguageName) to \(targetLanguage.queryLanguageName) translator. Your goal is to accurately convey the meaning and nuances of the original \(sourceLanguage.queryLanguageName) text while adhering to \(targetLanguage.queryLanguageName) grammar, vocabulary, and cultural sensitivities.
-Produce only the \(targetLanguage.queryLanguageName) translation, without any additional explanations or commentary. Please translate the following \(sourceLanguage.queryLanguageName) text into \(targetLanguage.queryLanguageName):\n\n\(text)"
+        "You are a professional \(sourceLanguage.queryLanguageName) to \(targetLanguage.queryLanguageName) translator. Your goal is to accurately convey the meaning and nuances of the original \(sourceLanguage.queryLanguageName) text while adhering to \(targetLanguage.queryLanguageName) grammar, vocabulary, and cultural sensitivities. Produce only the \(targetLanguage.queryLanguageName) translation, without any additional explanations or commentary. Please translate the following \(sourceLanguage.queryLanguageName) text into \(targetLanguage.queryLanguageName):\n\n\(text)"
     }
 
     func translationMessages(_ chatQuery: ChatQueryParam) -> [ChatMessage] {
